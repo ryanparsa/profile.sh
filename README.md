@@ -25,17 +25,19 @@ curl -o ~/.profile.sh https://raw.githubusercontent.com/ryanparsa/profile.sh/mai
 Add the following lines to your `~/.bashrc` or `~/.zshrc` file:
 
 ```bash
+# If set, forces the user to select a profile from the list.
+#export PROFILE_FORCE=1
+
+# If set, loads the default profile when no profile is specified.
+#export PROFILE_DEFAULT=proj1
+
+
 # Source the profile script
 source ~/.profile.sh
 
 # Alias for the profile function
 alias p='profile'
 
-# If set, forces the user to select a profile from the list.
-#export PROFILE_FORCE=1
-
-# If set, loads the default profile when no profile is specified.
-#export PROFILE_DEFAULT=proj1
 
 ```
 
