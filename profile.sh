@@ -1,5 +1,7 @@
+#!/bin/sh
+
 # Set default profile path if PROFILE_PATH is not set
-PROFILE_PATH=${PROFILE_PATH:-~/.profiles}
+PROFILE_PATH="${PROFILE_PATH:-$HOME/.profiles}"
 
 # Function to display help
 profile_help() {
@@ -10,6 +12,8 @@ profile_help() {
   echo "  l, list           - List available profiles"
   echo "  i, init <name>    - Create a new profile with the given name"
   echo "  e, edit <name>    - Edit the specified profile using the default editor"
+  echo "  s, sync           - Pull and push changes to remote git repo"
+  echo ""
   echo "  <name>            - Load the specified profile"
   echo ""
   echo "Environment Variables:"
@@ -26,6 +30,70 @@ profile_help() {
   echo "  PROFILE_FORCE=1 profile    - Force the user to select a profile"
 }
 
+# Sync with git
+profile_sync() {
+  # Save the current directory
+  original_dir=$(pwd)
+
+  # Ensure PROFILE_PATH is set and is a valid directory
+  if [ ! -d "$PROFILE_PATH" ]; then
+    echo "PROFILE_PATH ($PROFILE_PATH) is not a valid directory."
+    return 1
+  fi
+
+  # Navigate to the PROFILE_PATH directory
+  cd "$PROFILE_PATH" || { echo "Failed to change directory to $PROFILE_PATH"; return 1; }
+
+  # Ensure we're in a git repository
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "Not inside a git repository. Please ensure PROFILE_PATH contains a git repository."
+    cd "$original_dir"  # Return to the original directory
+    return 1
+  fi
+
+  # Fetch updates from remote main branch
+  echo "Fetching updates from remote repository..."
+  git fetch origin main
+
+  # Check for local changes
+  changes=$(git status --porcelain)
+  if [ -n "$changes" ]; then
+    echo "Local changes detected."
+    echo "Adding all changes..."
+    git add .
+
+    # Commit changes with datetime
+    datetime=$(date +"%Y-%m-%d %H:%M:%S")
+    echo "Committing changes..."
+    git commit -m "Sync local changes at $datetime"
+  else
+    echo "No local changes to commit."
+  fi
+
+  # Pull and rebase onto the updated remote main
+  echo "Pulling and rebasing onto remote main..."
+  if ! git pull --rebase origin main; then
+    echo "Rebase failed. Please resolve conflicts and run 'profile sync' again."
+    cd "$original_dir"  # Return to the original directory
+    return 1
+  fi
+
+  # Push local changes to remote repository if any
+  if [ -n "$(git status --porcelain)" ]; then
+    echo "Pushing local changes to remote repository..."
+    if ! git push origin main; then
+      echo "Push failed. Please check your remote configuration and try again."
+      cd "$original_dir"  # Return to the original directory
+      return 1
+    fi
+  else
+    echo "No changes to push. Working tree clean."
+  fi
+
+  # Return to the original directory
+  cd "$original_dir"
+}
+
 # Function to list profiles
 profile_list() {
   echo "Available profiles:"
@@ -34,54 +102,66 @@ profile_list() {
 
 # Function to create a new profile
 profile_init() {
-  if [[ -z $1 ]]; then
+  profile_name="$1"
+
+  if [ -z "$profile_name" ]; then
     echo "Please provide a profile name."
     return 1
   fi
-  touch "$PROFILE_PATH/$1"
-  echo "Profile '$1' created."
+
+  if [ -e "$PROFILE_PATH/$profile_name" ]; then
+    echo "Profile '$profile_name' already exists."
+    return 1
+  fi
+
+  touch "$PROFILE_PATH/$profile_name"
+  echo "Profile '$profile_name' created."
 }
 
 # Function to load a profile
 profile_load() {
-  if [[ -e "$PROFILE_PATH/$1" ]]; then
-    source "$PROFILE_PATH/$1"
-    echo "Profile '$1' loaded."
+  profile_name="$1"
+
+  if [ -e "$PROFILE_PATH/$profile_name" ]; then
+    . "$PROFILE_PATH/$profile_name"
+    echo "Profile '$profile_name' loaded."
   else
-    echo "Profile '$1' does not exist."
+    echo "Profile '$profile_name' does not exist."
   fi
 }
 
 # Function to edit a profile
 profile_edit() {
-  if [[ -z $1 ]]; then
+  profile_name="$1"
+
+  if [ -z "$profile_name" ]; then
     echo "Please provide a profile name to edit."
     return 1
   fi
-  if [[ -e "$PROFILE_PATH/$1" ]]; then
-    ${EDITOR:-vi} "$PROFILE_PATH/$1"  # Use $EDITOR if set, otherwise fall back to vi
-    echo "Profile '$1' opened for editing."
+
+  if [ -e "$PROFILE_PATH/$profile_name" ]; then
+    ${EDITOR:-vi} "$PROFILE_PATH/$profile_name"  # Use $EDITOR if set, otherwise fall back to vi
+    echo "Profile '$profile_name' opened for editing."
   else
-    echo "Profile '$1' does not exist."
+    echo "Profile '$profile_name' does not exist."
   fi
 }
 
 # Function to handle PROFILE_FORCE or load PROFILE_DEFAULT
 profile_default() {
-  if [[ -n $PROFILE_FORCE ]]; then
+  if [ -n "$PROFILE_FORCE" ]; then
     echo "PROFILE_FORCE is set. Please choose a profile:"
     profile_list
 
     # Prompt user for input
-    echo -n "Enter profile name: "
-    read profile_name
+    read -p "Enter profile name: " profile_name
 
     # Load selected profile
     profile_load "$profile_name"
     return
   fi
 
-  if [[ -n $PROFILE_DEFAULT ]]; then
+  if [ -n "$PROFILE_DEFAULT" ]; then
     profile_load "$PROFILE_DEFAULT"
     return
   fi
@@ -89,7 +169,10 @@ profile_default() {
 
 # Main profile function to delegate to sub-functions
 profile() {
-  case $1 in
+  command="$1"
+  arg="$2"
+
+  case "$command" in
     "")
       profile_default
       ;;
@@ -100,15 +183,18 @@ profile() {
       profile_list
       ;;
     "i" | "init")
-      profile_init $2
+      profile_init "$arg"
       ;;
     "e" | "edit")
-      profile_edit $2
+      profile_edit "$arg"
+      ;;
+    "s" | "sync")
+      profile_sync
       ;;
     *)
-      profile_load $1
+      profile_load "$command"
       ;;
   esac
 }
 
-profile
+profile "$@"
