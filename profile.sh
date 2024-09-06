@@ -154,7 +154,8 @@ profile_default() {
     profile_list
 
     # Prompt user for input
-    read -p "Enter profile name: " profile_name
+    echo -n "Enter profile name: "
+    read profile_name
 
     # Load selected profile
     profile_load "$profile_name"
@@ -166,7 +167,6 @@ profile_default() {
     return
   fi
 }
-
 # Main profile function to delegate to sub-functions
 profile() {
   command="$1"
