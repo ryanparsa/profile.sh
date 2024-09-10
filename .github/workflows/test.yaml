@@ -39,10 +39,8 @@ jobs:
 
       - name: Set up shell environment
         run: |
-          ls -lah
-          pwd
-          cp .profile.sh $HOME/profile.sh 
-          echo "source $HOME/profile.sh" >> ~/.${{ matrix.shell }}rc
+          cp profile.sh $HOME/.profile.sh 
+          echo "source $HOME/.profile.sh" >> ~/.${{ matrix.shell }}rc
           source ~/.${{ matrix.shell }}rc
 
       - name: Test profile update
