@@ -4,42 +4,85 @@ on: [push, pull_request]
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        shell: [bash, zsh]
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Set up shell
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y bash zsh
+          sudo apt-get install -y bash zsh make
+
+      - name: Set up shell
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install bash zsh make
 
       - name: Make script executable
-        run: chmod +x ~/.profile.sh
+        run: make install
 
-      - name: Test profile script in bash
-        shell: bash
+      - name: Set up shell environment
         run: |
-          ~/.profile.sh update
-          ~/.profile.sh i test_profile
-          ~/.profile.sh l
-          ~/.profile.sh e test_profile
-          ~/.profile.sh s
-          ~/.profile.sh pre
-          ~/.profile.sh post
-          ~/.profile.sh test_profile
-          ~/.profile.sh h
+          echo "source $(pwd)/profile.sh" >> ~/.${{ matrix.shell }}rc
+          source ~/.${{ matrix.shell }}rc
 
-      - name: Test profile script in zsh
-        shell: zsh
+      - name: Test profile update
+        shell: ${{ matrix.shell }}
         run: |
-          ~/.profile.sh update
-          ~/.profile.sh i test_profile
-          ~/.profile.sh l
-          ~/.profile.sh e test_profile
-          ~/.profile.sh s
-          ~/.profile.sh pre
-          ~/.profile.sh post
-          ~/.profile.sh test_profile
-          ~/.profile.sh h
+          echo "Running profile update"
+          profile update 
+
+      - name: Test profile init
+        shell: ${{ matrix.shell }}
+        run: |
+          echo "Running profile init"
+          profile i test_profile 
+
+      - name: Test profile list
+        shell: ${{ matrix.shell }}
+        run: |
+          echo "Running profile list"
+          profile l 
+
+      - name: Test profile edit
+        shell: ${{ matrix.shell }}
+        run: |
+          echo "Running profile edit"
+          profile e test_profile 
+
+      - name: Test profile sync
+        shell: ${{ matrix.shell }}
+        run: |
+          echo "Running profile sync"
+          profile s 
+
+      - name: Test profile pre
+        shell: ${{ matrix.shell }}
+        run: |
+          echo "Running profile pre"
+          profile pre 
+
+      - name: Test profile post
+        shell: ${{ matrix.shell }}
+        run: |
+          echo "Running profile post"
+          profile post 
+
+      - name: Test profile load
+        shell: ${{ matrix.shell }}
+        run: |
+          echo "Running profile load"
+          profile test_profile 
+
+      - name: Test profile help
+        shell: ${{ matrix.shell }}
+        run: |
+          echo "Running profile help"
+          profile h 
