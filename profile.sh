@@ -5,6 +5,24 @@ PROFILE_PATH="${PROFILE_PATH:-$HOME/.profiles}"
 PRE_LOAD_SCRIPT="${PRE_LOAD_SCRIPT:-$PROFILE_PATH/pre_load.sh}"
 POST_LOAD_SCRIPT="${POST_LOAD_SCRIPT:-$PROFILE_PATH/post_load.sh}"
 
+# Create profile directory if it doesn't exist
+if [ ! -d "$PROFILE_PATH" ]; then
+  echo "Profile directory not found. Creating: $PROFILE_PATH"
+  mkdir -p "$PROFILE_PATH"
+fi
+
+# Create pre-load script if it doesn't exist
+if [ ! -f "$PRE_LOAD_SCRIPT" ]; then
+  echo "Pre-load script not found. Creating: $PRE_LOAD_SCRIPT"
+  touch "$PRE_LOAD_SCRIPT"
+fi
+
+# Create post-load script if it doesn't exist
+if [ ! -f "$POST_LOAD_SCRIPT" ]; then
+  echo "Post-load script not found. Creating: $POST_LOAD_SCRIPT"
+  touch "$POST_LOAD_SCRIPT"
+fi
+
 # Function to display help
 profile_help() {
   echo "Usage: profile [COMMAND] [ARGS]"
