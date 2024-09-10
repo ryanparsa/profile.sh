@@ -1,0 +1,20 @@
+root = true
+
+# All files
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# Shell script files
+[*.sh]
+indent_style = space
+indent_size = 2
+
+# Markdown files
+[*.md]
+indent_style = space
+indent_size = 2
