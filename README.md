@@ -175,13 +175,13 @@ Example:
 export PROFILE_PATH=~/my_custom_profiles
 ```
 
-##### **`PRE_LOAD_SCRIPT` and `POST_LOAD_SCRIPT`**
-These variables specify the scripts that are executed before and after loading a profile. `PRE_LOAD_SCRIPT` runs before loading a new profile to clean up the previous environment, while `POST_LOAD_SCRIPT` runs after to set up the new environment.
+##### **`PROFILE_PRE_LOAD_SCRIPT` and `PROFILE_POST_LOAD_SCRIPT`**
+These variables specify the scripts that are executed before and after loading a profile. `PROFILE_PRE_LOAD_SCRIPT` runs before loading a new profile to clean up the previous environment, while `PROFILE_POST_LOAD_SCRIPT` runs after to set up the new environment.
 
 Example:
 ```sh
-export PRE_LOAD_SCRIPT=$PROFILE_PATH/pre_load.sh
-export POST_LOAD_SCRIPT=$PROFILE_PATH/post_load.sh
+export PROFILE_PRE_LOAD_SCRIPT=$PROFILE_PATH/pre_load.sh
+export PROFILE_POST_LOAD_SCRIPT=$PROFILE_PATH/post_load.sh
 ```
 
 ##### **`PROFILE_FORCE`**

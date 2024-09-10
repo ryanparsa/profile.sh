@@ -2,8 +2,8 @@
 
 # Set default profile path if PROFILE_PATH is not set
 PROFILE_PATH="${PROFILE_PATH:-$HOME/.profiles}"
-PRE_LOAD_SCRIPT="${PRE_LOAD_SCRIPT:-$PROFILE_PATH/pre_load.sh}"
-POST_LOAD_SCRIPT="${POST_LOAD_SCRIPT:-$PROFILE_PATH/post_load.sh}"
+PROFILE_PRE_LOAD_SCRIPT="${PROFILE_PRE_LOAD_SCRIPT:-$PROFILE_PATH/pre_load.sh}"
+PROFILE_POST_LOAD_SCRIPT="${PROFILE_POST_LOAD_SCRIPT:-$PROFILE_PATH/post_load.sh}"
 
 # Create profile directory if it doesn't exist
 if [ ! -d "$PROFILE_PATH" ]; then
@@ -12,15 +12,15 @@ if [ ! -d "$PROFILE_PATH" ]; then
 fi
 
 # Create pre-load script if it doesn't exist
-if [ ! -f "$PRE_LOAD_SCRIPT" ]; then
-  echo "Pre-load script not found. Creating: $PRE_LOAD_SCRIPT"
-  touch "$PRE_LOAD_SCRIPT"
+if [ ! -f "$PROFILE_PRE_LOAD_SCRIPT" ]; then
+  echo "Pre-load script not found. Creating: $PROFILE_PRE_LOAD_SCRIPT"
+  touch "$PROFILE_PRE_LOAD_SCRIPT"
 fi
 
 # Create post-load script if it doesn't exist
-if [ ! -f "$POST_LOAD_SCRIPT" ]; then
-  echo "Post-load script not found. Creating: $POST_LOAD_SCRIPT"
-  touch "$POST_LOAD_SCRIPT"
+if [ ! -f "$PROFILE_POST_LOAD_SCRIPT" ]; then
+  echo "Post-load script not found. Creating: $PROFILE_POST_LOAD_SCRIPT"
+  touch "$PROFILE_POST_LOAD_SCRIPT"
 fi
 
 # Function to display help
@@ -33,24 +33,16 @@ profile_help() {
   echo "  i, init <name>    - Create a new profile with the given name"
   echo "  e, edit <name>    - Edit the specified profile using the default editor"
   echo "  s, sync           - Pull and push changes to remote git repo"
-  echo ""
+  echo "  pre               - Run the pre-load script directly"
+  echo "  post              - Run the post-load script directly"
   echo "  <name>            - Load the specified profile"
+  echo "                    - Check Notes"
   echo ""
-  echo "Environment Variables:"
-  echo "  PROFILE_FORCE     - If set, forces the user to select a profile from the list"
-  echo "  PROFILE_DEFAULT   - If set, loads the default profile when no profile is specified"
-  echo "  PROFILE_PATH      - Specifies the path to store and load profiles (default: ~/.profiles)"
-  echo "  PRE_LOAD_SCRIPT   - Specifies the path to a script to run before loading a profile"
-  echo "  POST_LOAD_SCRIPT  - Specifies the path to a script to run after loading a profile"
   echo ""
-  echo "Examples:"
-  echo "  profile list               - List all available profiles"
-  echo "  profile init myprofile     - Create a new profile 'myprofile'"
-  echo "  profile edit myprofile     - Edit the profile 'myprofile'"
-  echo "  profile myprofile          - Load the profile 'myprofile'"
-  echo "  profile                    - Load default profile (if PROFILE_DEFAULT is set)"
-  echo "  PROFILE_FORCE=1 profile    - Force the user to select a profile"
-}
+  echo "Notes:"
+  echo "  If PROFILE_FORCE is set, the script will prompt the user to select a profile from the list."
+  echo "  If PROFILE_DEFAULT is set and PROFILE_FORCE is not, the default profile will be loaded."
+  echo "  If neither is set, no profile will be loaded by default."
 
 # Sync with git
 profile_sync() {
@@ -114,6 +106,7 @@ profile_sync() {
   # Return to the original directory
   cd "$original_dir"
 }
+
 # Function to list profiles
 profile_list() {
   echo "Available profiles:"
@@ -144,8 +137,8 @@ profile_load() {
 
   if [ -e "$PROFILE_PATH/$profile_name" ]; then
     # Check if pre_load script exists and source it
-    if [ -f "$PRE_LOAD_SCRIPT" ]; then
-      . "$PRE_LOAD_SCRIPT"
+    if [ -f "$PROFILE_PRE_LOAD_SCRIPT" ]; then
+      . "$PROFILE_PRE_LOAD_SCRIPT"
     fi
     
     # Load the profile
@@ -153,11 +146,31 @@ profile_load() {
     echo "Profile '$profile_name' loaded."
     
     # Check if post_load script exists and source it
-    if [ -f "$POST_LOAD_SCRIPT" ]; then
-      . "$POST_LOAD_SCRIPT"
+    if [ -f "$PROFILE_POST_LOAD_SCRIPT" ]; then
+      . "$PROFILE_POST_LOAD_SCRIPT"
     fi
   else
     echo "Profile '$profile_name' does not exist."
+  fi
+}
+
+# Function to run the pre-load script
+profile_pre() {
+  if [ -f "$PROFILE_PRE_LOAD_SCRIPT" ]; then
+    . "$PROFILE_PRE_LOAD_SCRIPT"
+    echo "Pre-load script executed."
+  else
+    echo "Pre-load script not found."
+  fi
+}
+
+# Function to run the post-load script
+profile_post() {
+  if [ -f "$PROFILE_POST_LOAD_SCRIPT" ]; then
+    . "$PROFILE_POST_LOAD_SCRIPT"
+    echo "Post-load script executed."
+  else
+    echo "Post-load script not found."
   fi
 }
 
@@ -222,6 +235,12 @@ profile() {
       ;;
     "s" | "sync")
       profile_sync
+      ;;
+    "pre")
+      profile_pre
+      ;;
+    "post")
+      profile_post
       ;;
     *)
       profile_load "$command"
