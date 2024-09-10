@@ -5,7 +5,7 @@ on: [push, pull_request]
 # TODO: we have a bug on setting shell name in jobs https://github.com/actions/runner/issues/444
 
 jobs:
-  test_profile_script:
+  test:
     strategy:
       fail-fast: false
       matrix:
@@ -39,6 +39,8 @@ jobs:
 
       - name: Set up shell environment
         run: |
+          ls -lah
+          pwd
           cp .profile.sh $HOME/profile.sh 
           echo "source $HOME/profile.sh" >> ~/.${{ matrix.shell }}rc
           source ~/.${{ matrix.shell }}rc
