@@ -1,0 +1,18 @@
+
+# Ignore editor-specific files
+.vscode/
+*.suo
+*.user
+*.swp
+*.sublime-workspace
+*.sublime-project
+
+# Ignore system-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE or Editor configuration files
+.idea/
+*.iml
+*.ipr
+*.iws
