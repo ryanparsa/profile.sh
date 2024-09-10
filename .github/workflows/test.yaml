@@ -3,13 +3,24 @@ name: Test Profile Script
 on: [push, pull_request]
 
 jobs:
-  test:
-    runs-on: ${{ matrix.os }}
+  test_profile_script:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
         shell: [bash, zsh]
-    
+        include:
+          - os: ubuntu-latest
+            shell: bash
+          - os: ubuntu-latest
+            shell: zsh
+          - os: macos-latest
+            shell: bash
+          - os: macos-latest
+            shell: zsh
+
+    runs-on: ${{ matrix.os }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -30,7 +41,7 @@ jobs:
 
       - name: Set up shell environment
         run: |
-          echo "source $(pwd)/profile.sh" >> ~/.${{ matrix.shell }}rc
+          echo "source $HOME/profile.sh" >> ~/.${{ matrix.shell }}rc
           source ~/.${{ matrix.shell }}rc
 
       - name: Test profile update
