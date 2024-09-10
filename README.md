@@ -2,7 +2,7 @@
 
 In modern development environments, managing different configurations for various projects or services (like AWS, Kubernetes, and SSH) can be challenging. Each project may require different credentials, environment variables, or services, and manually switching between them can be error-prone and time-consuming.
 
-This is where the `profile` shell script comes in. It provides a simple and efficient way to manage multiple configurations, or "profiles," and switch between them dynamically. This script is ideal for developers, sysadmins, or anyone working with cloud services, containerized environments, or multiple projects that require distinct settings.
+This is where the `profile` shell script comes in. It provides a simple and efficient way to manage multiple configurations, and switch between them dynamically. This script is ideal for developers, sysadmins, or anyone working with cloud services, containerized environments, or multiple projects that require distinct settings. there is not any third party tools, packages, or any requerments. you just need `bash` or `zsh`
 
 ### Key Concepts
 
