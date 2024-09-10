@@ -1,3 +1,7 @@
+Here’s the updated documentation, including explanations for the specific environment variables you mentioned (`PROFILE_PATH`, `PRE_LOAD_SCRIPT`, `POST_LOAD_SCRIPT`, `PROFILE_FORCE`, and `PROFILE_DEFAULT`):
+
+---
+
 ### Overview
 
 In modern development environments, managing different configurations for various projects or services (like AWS, Kubernetes, and SSH) can be challenging. Each project may require different credentials, environment variables, or services, and manually switching between them can be error-prone and time-consuming.
@@ -26,30 +30,23 @@ This is where the `profile` shell script comes in. It provides a simple and effi
 
 #### 1. **Basic Setup**
 
-1. **Create a Profiles Directory**:
-   By default, the script looks for profiles in the `~/.profiles` directory. Start by creating this directory if it doesn’t exist:
+1. **Installing**:
    ```sh
-   mkdir ~/.profiles
+   curl -o ~/.profile.sh https://raw.githubusercontent.com/ryanparsa/profile.sh/main/profile.sh
    ```
 
-2. **Save the Script**:
-   Save the `profile` script as `profile.sh` in your home directory.
-
-3. **Make the Script Executable**:
-   ```sh
-   chmod +x ~/profile.sh
-   ```
-
-4. **Add to Shell Configuration**:
+2. **Add to Shell Configuration**:
    To make the script available in your terminal, add the following to your `.bashrc` or `.zshrc`:
    ```sh
-   source ~/profile.sh
+   source ~/.profile.sh
    alias p=profile
    ```
+
    Then reload the shell:
    ```sh
    source ~/.zshrc  # or ~/.bashrc
    ```
+   or just open a new one
 
 #### 2. **Managing Profiles**
 
@@ -69,11 +66,22 @@ To configure `projectA`, edit the profile:
 ```sh
 p e projectA
 ```
+Alternatively, you can open the profiles directory in your favorite editor:
+```
+code ~/.profiles  # or any other editor you prefer
+```
+
 You can add project-specific environment variables, such as AWS credentials or Kubernetes configurations:
 ```sh
 export AWS_ACCESS_KEY_ID=YOUR_AWS_KEY
 export AWS_SECRET_ACCESS_KEY=YOUR_AWS_SECRET
 export KUBECONFIG=~/path/to/kubeconfig.yaml
+```
+
+Or, you can create aliases or execute commands:
+```sh
+alias ng="ngrok http --domain=myapp.ngrok-free.app 8000"
+kubectl config set-context --current --namespace=prod
 ```
 
 ##### **Loading a Profile**
@@ -95,23 +103,55 @@ p l
 
 ##### **Pre-Load and Post-Load Scripts**
 
-If you need to clean up old environment variables before loading a new profile or run setup tasks after loading one, you can use the `pre_load.sh` and `post_load.sh` scripts. For example:
+If you need to clean up old environment variables before loading a new profile or run setup tasks after loading one, you can use the `pre_load.sh` and `post_load.sh` scripts. For example, `post_load.sh` can be used to create `.aws`, `.kube`, or `.ssh` directories to keep your system integrated, as some tools, IDEs, or services may not handle multiple environment changes smoothly.
 
 - **`pre_load.sh`** (clears old variables):
-  ```sh
-  unset AWS_ACCESS_KEY_ID
-  unset AWS_SECRET_ACCESS_KEY
-  unset KUBECONFIG
-  ```
+```sh
+# Unset common environment variables
+
+# Unset variables related to OpenAI
+unset OPENAI_API_KEY
+
+# Unset variables related to AWS
+unset AWS_ACCESS_KEY_ID
+unset AWS_SECRET_ACCESS_KEY
+unset AWS_SESSION_TOKEN
+unset AWS_DEFAULT_REGION
+
+# Unset variables related to Kubernetes
+unset KUBECONFIG
+unset KUBERNETES_SERVICE_HOST
+unset KUBERNETES_SERVICE_PORT
+```
 
 - **`post_load.sh`** (sets up configuration files):
-  ```sh
-  mkdir -p ~/.kube
-  cp "$KUBECONFIG" ~/.kube/config
-  kubectl config use-context default
-  ```
+```sh
+# Create the .kube directory and copy the KUBECONFIG file
+mkdir -p ~/.kube
+cp "$KUBECONFIG" ~/.kube/config
+kubectl config use-context default
 
-These scripts will run automatically when switching profiles, ensuring a clean and ready-to-go environment each time.
+# Create the .aws directory and configuration files
+mkdir -p ~/.aws
+cat > ~/.aws/config <<EOL
+[default]
+region = ${AWS_DEFAULT_REGION}
+output = ${AWS_DEFAULT_OUTPUT}
+EOL
+cat > ~/.aws/credentials <<EOL
+[default]
+aws_access_key_id = ${AWS_ACCESS_KEY_ID}
+aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}
+EOL
+
+# Set up SSH directory and keys
+SSH_DIR="$HOME/.ssh"
+mkdir -p "$SSH_DIR"
+echo "$SSH_ID_ED25519_CONTENT" > "$SSH_DIR/id_ed25519"
+echo "$SSH_ID_RSA_CONTENT" > "$SSH_DIR/id_rsa"
+chmod 700 "$SSH_DIR"
+chmod 600 "$SSH_DIR/id_ed25519" "$SSH_DIR/id_rsa"
+```
 
 ##### **Syncing Profiles with Git**
 
@@ -128,7 +168,42 @@ p s
 ```
 This will fetch updates from the repository, commit any local changes, and push the latest version to the remote repository.
 
-#### 4. **Real-World Example**
+#### 4. **Environment Variables Used in the Script**
+
+##### **`PROFILE_PATH`**
+`PROFILE_PATH` defines the directory where all profiles are stored. By default, it points to `~/.profiles`. You can modify this variable to store profiles in a different location if necessary.
+
+Example:
+```sh
+export PROFILE_PATH=~/my_custom_profiles
+```
+
+##### **`PRE_LOAD_SCRIPT` and `POST_LOAD_SCRIPT`**
+These variables specify the scripts that are executed before and after loading a profile. `PRE_LOAD_SCRIPT` runs before loading a new profile to clean up the previous environment, while `POST_LOAD_SCRIPT` runs after to set up the new environment.
+
+Example:
+```sh
+export PRE_LOAD_SCRIPT=$PROFILE_PATH/pre_load.sh
+export POST_LOAD_SCRIPT=$PROFILE_PATH/post_load.sh
+```
+
+##### **`PROFILE_FORCE`**
+If set to `1`, this variable forces a profile to load even if some variables are already set in the environment. This can be useful if you want to ensure a profile's settings overwrite any existing ones.
+
+Example:
+```sh
+export PROFILE_FORCE=1
+```
+
+##### **`PROFILE_DEFAULT`**
+`PROFILE_DEFAULT` defines the default profile to load if no specific profile is mentioned. This ensures that a baseline configuration is always loaded when no specific profile is requested.
+
+Example:
+```sh
+export PROFILE_DEFAULT=default_profile
+```
+
+#### 5. **Real-World Example**
 
 Let’s say you have two profiles, one for development (`dev`) and another for production (`prod`), each requiring different AWS and Kubernetes configurations:
 
@@ -153,7 +228,3 @@ p prod # Switch to production environment
 ```
 
 In this case, `pre_load.sh` might clean up old AWS and Kubernetes settings, and `post_load.sh` might configure your AWS and Kubernetes CLI tools based on the newly loaded profile.
-
-### Conclusion
-
-This profile management script is an invaluable tool for anyone juggling multiple environments, such as developers, sysadmins, or cloud engineers. It automates the tedious task of setting environment variables and configurations for various projects, ensuring you always have the right setup with minimal effort. Additionally, integrating with Git allows for easy profile sharing and synchronization across multiple machines.
