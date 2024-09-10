@@ -46,44 +46,53 @@ jobs:
       - name: Test profile update
         shell: bash
         run: |
+          source ~/.${{ matrix.shell }}rc
           profile update 
 
       - name: Test profile init
         shell: bash
         run: |
+          source ~/.${{ matrix.shell }}rc
           profile i test_profile 
 
       - name: Test profile list
         shell: bash
         run: |
+          source ~/.${{ matrix.shell }}rc
           profile l 
 
       - name: Test profile edit
         shell: bash
         run: |
+          source ~/.${{ matrix.shell }}rc
           profile e test_profile 
 
       - name: Test profile sync
         shell: bash
         run: |
+          source ~/.${{ matrix.shell }}rc
           profile s 
 
       - name: Test profile pre
         shell: bash
         run: |
+          source ~/.${{ matrix.shell }}rc
           profile pre 
 
       - name: Test profile post
         shell: bash
         run: |
+          source ~/.${{ matrix.shell }}rc
           profile post 
 
       - name: Test profile load
         shell: bash
         run: |
+          source ~/.${{ matrix.shell }}rc
           profile test_profile 
 
       - name: Test profile help
         shell: bash
         run: |
+          source ~/.${{ matrix.shell }}rc
           profile h 
