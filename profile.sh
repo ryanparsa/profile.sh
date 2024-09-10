@@ -35,14 +35,14 @@ profile_help() {
   echo "  s, sync           - Pull and push changes to remote git repo"
   echo "  pre               - Run the pre-load script directly"
   echo "  post              - Run the post-load script directly"
+  echo "  update            - Update this script to the latest version"
   echo "  <name>            - Load the specified profile"
-  echo "                    - Check Notes"
-  echo ""
   echo ""
   echo "Notes:"
   echo "  If PROFILE_FORCE is set, the script will prompt the user to select a profile from the list."
   echo "  If PROFILE_DEFAULT is set and PROFILE_FORCE is not, the default profile will be loaded."
   echo "  If neither is set, no profile will be loaded by default."
+}
 
 # Sync with git
 profile_sync() {
@@ -109,7 +109,8 @@ profile_sync() {
 
 # Function to list profiles
 profile_list() {
-  echo "Available profiles:"
+  echo "Profiles:"
+  echo "--------"
   ls -1 "$PROFILE_PATH"
 }
 
@@ -162,6 +163,12 @@ profile_pre() {
   else
     echo "Pre-load script not found."
   fi
+}
+
+# Function to update the script
+profile_update() {
+  echo "Updating script to the latest version..."
+  curl -o ~/.profile.sh https://raw.githubusercontent.com/ryanparsa/profile.sh/main/profile.sh
 }
 
 # Function to run the post-load script
@@ -241,6 +248,9 @@ profile() {
       ;;
     "post")
       profile_post
+      ;;
+    "update")
+      profile_update
       ;;
     *)
       profile_load "$command"
