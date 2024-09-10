@@ -2,6 +2,8 @@
 
 # Set default profile path if PROFILE_PATH is not set
 PROFILE_PATH="${PROFILE_PATH:-$HOME/.profiles}"
+PRE_LOAD_SCRIPT="${PRE_LOAD_SCRIPT:-$PROFILE_PATH/pre_load.sh}"
+POST_LOAD_SCRIPT="${POST_LOAD_SCRIPT:-$PROFILE_PATH/post_load.sh}"
 
 # Function to display help
 profile_help() {
@@ -20,6 +22,8 @@ profile_help() {
   echo "  PROFILE_FORCE     - If set, forces the user to select a profile from the list"
   echo "  PROFILE_DEFAULT   - If set, loads the default profile when no profile is specified"
   echo "  PROFILE_PATH      - Specifies the path to store and load profiles (default: ~/.profiles)"
+  echo "  PRE_LOAD_SCRIPT   - Specifies the path to a script to run before loading a profile"
+  echo "  POST_LOAD_SCRIPT  - Specifies the path to a script to run after loading a profile"
   echo ""
   echo "Examples:"
   echo "  profile list               - List all available profiles"
@@ -33,7 +37,7 @@ profile_help() {
 # Sync with git
 profile_sync() {
   # Save the current directory
-  original_dir=$(pwd)
+  local original_dir=$(pwd)
 
   # Ensure PROFILE_PATH is set and is a valid directory
   if [ ! -d "$PROFILE_PATH" ]; then
@@ -53,19 +57,22 @@ profile_sync() {
 
   # Fetch updates from remote main branch
   echo "Fetching updates from remote repository..."
-  git fetch origin main
+  if ! git fetch origin main; then
+    echo "Failed to fetch updates from remote repository."
+    cd "$original_dir"  # Return to the original directory
+    return 1
+  fi
 
   # Check for local changes
-  changes=$(git status --porcelain)
-  if [ -n "$changes" ]; then
-    echo "Local changes detected."
-    echo "Adding all changes..."
-    git add .
-
+  if [ -n "$(git status --porcelain)" ]; then
     # Commit changes with datetime
-    datetime=$(date +"%Y-%m-%d %H:%M:%S")
-    echo "Committing changes..."
-    git commit -m "Sync local changes at $datetime"
+    local commit_message="Sync local changes at $(date +"%Y-%m-%d %H:%M:%S")"
+    echo "Adding and committing local changes..."
+    if ! git add . || ! git commit -m "$commit_message"; then
+      echo "Failed to add or commit changes."
+      cd "$original_dir"  # Return to the original directory
+      return 1
+    fi
   else
     echo "No local changes to commit."
   fi
@@ -78,22 +85,17 @@ profile_sync() {
     return 1
   fi
 
-  # Push local changes to remote repository if any
-  if [ -n "$(git status --porcelain)" ]; then
-    echo "Pushing local changes to remote repository..."
-    if ! git push origin main; then
-      echo "Push failed. Please check your remote configuration and try again."
-      cd "$original_dir"  # Return to the original directory
-      return 1
-    fi
-  else
-    echo "No changes to push. Working tree clean."
+  # Push local changes to remote repository
+  echo "Pushing local changes to remote repository..."
+  if ! git push origin main; then
+    echo "Push failed. Please check your remote configuration and try again."
+    cd "$original_dir"  # Return to the original directory
+    return 1
   fi
 
   # Return to the original directory
   cd "$original_dir"
 }
-
 # Function to list profiles
 profile_list() {
   echo "Available profiles:"
@@ -123,8 +125,19 @@ profile_load() {
   profile_name="$1"
 
   if [ -e "$PROFILE_PATH/$profile_name" ]; then
+    # Check if pre_load script exists and source it
+    if [ -f "$PRE_LOAD_SCRIPT" ]; then
+      . "$PRE_LOAD_SCRIPT"
+    fi
+    
+    # Load the profile
     . "$PROFILE_PATH/$profile_name"
     echo "Profile '$profile_name' loaded."
+    
+    # Check if post_load script exists and source it
+    if [ -f "$POST_LOAD_SCRIPT" ]; then
+      . "$POST_LOAD_SCRIPT"
+    fi
   else
     echo "Profile '$profile_name' does not exist."
   fi
@@ -167,6 +180,7 @@ profile_default() {
     return
   fi
 }
+
 # Main profile function to delegate to sub-functions
 profile() {
   command="$1"
