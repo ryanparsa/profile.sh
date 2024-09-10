@@ -1,164 +1,159 @@
-# Profile Manager
+### Overview
 
-**Profile Manager** is a simple script for managing multiple shell profiles. It allows you to switch between different configurations quickly and easily, making it ideal for managing environments with varying settings or credentials.
+In modern development environments, managing different configurations for various projects or services (like AWS, Kubernetes, and SSH) can be challenging. Each project may require different credentials, environment variables, or services, and manually switching between them can be error-prone and time-consuming.
 
-## Why Use Profile Manager?
+This is where the `profile` shell script comes in. It provides a simple and efficient way to manage multiple configurations, or "profiles," and switch between them dynamically. This script is ideal for developers, sysadmins, or anyone working with cloud services, containerized environments, or multiple projects that require distinct settings.
 
-Managing multiple profiles can be tedious, especially when switching between different environments such as work and personal projects. **Profile Manager** streamlines this process by allowing you to:
+### Key Concepts
 
-- **Create and Manage Profiles**: Set up and edit different profiles for various needs.
-- **Switch Profiles Easily**: Load the desired profile with a single command.
-- **Force Profile Selection**: Ensure a profile is chosen when `PROFILE_FORCE` is set.
+1. **Profiles**: Profiles are custom environments that define specific settings like environment variables, credentials, or paths. You can create different profiles for each project or service.
+  
+2. **Environment Variables**: Variables such as AWS credentials, Kubernetes configuration, and SSH keys are stored within profiles and loaded when needed, ensuring you use the correct settings for each task.
 
-## Installation and Setup
+3. **Pre-load/Post-load Scripts**: These are scripts that run automatically before and after loading a profile. They help in cleaning up any old environment variables (pre-load) and setting up the necessary environment (post-load).
 
-### 1. Install the Script
+4. **Synchronization with Git**: Profiles can be synced with a remote Git repository, allowing you to share configurations across devices or with your team.
 
-You can download and install the script directly using the following command:
+### Why This Script Can Help You
 
-```bash
-curl -o ~/.profile.sh https://raw.githubusercontent.com/ryanparsa/profile.sh/main/profile.sh
+1. **Dynamic Configuration Switching**: If you work with different cloud providers (like AWS), Kubernetes clusters, or need specific SSH configurations for various projects, this script allows you to easily switch between environments by loading the appropriate profile.
+   
+2. **Automation of Repetitive Tasks**: Instead of manually setting and unsetting environment variables or copying configuration files, the script does this automatically when you switch profiles, reducing errors and saving time.
+
+3. **Consistency Across Projects**: By defining your environment in profiles, you ensure that each project has a consistent setup. This is particularly useful when collaborating with others, as you can share profiles through a Git repository.
+
+### Step-by-Step Tutorial
+
+#### 1. **Basic Setup**
+
+1. **Create a Profiles Directory**:
+   By default, the script looks for profiles in the `~/.profiles` directory. Start by creating this directory if it doesn’t exist:
+   ```sh
+   mkdir ~/.profiles
+   ```
+
+2. **Save the Script**:
+   Save the `profile` script as `profile.sh` in your home directory.
+
+3. **Make the Script Executable**:
+   ```sh
+   chmod +x ~/profile.sh
+   ```
+
+4. **Add to Shell Configuration**:
+   To make the script available in your terminal, add the following to your `.bashrc` or `.zshrc`:
+   ```sh
+   source ~/profile.sh
+   alias p=profile
+   ```
+   Then reload the shell:
+   ```sh
+   source ~/.zshrc  # or ~/.bashrc
+   ```
+
+#### 2. **Managing Profiles**
+
+Now that your script is set up, you can create and manage profiles to switch between different environments.
+
+##### **Creating a New Profile**
+
+Let’s say you want to create a profile for a project called `projectA`. Use the following command:
+```sh
+p i projectA
+```
+This creates an empty profile file in `~/.profiles/projectA`. You can now edit the profile to add the environment variables and settings required for this project.
+
+##### **Editing a Profile**
+
+To configure `projectA`, edit the profile:
+```sh
+p e projectA
+```
+You can add project-specific environment variables, such as AWS credentials or Kubernetes configurations:
+```sh
+export AWS_ACCESS_KEY_ID=YOUR_AWS_KEY
+export AWS_SECRET_ACCESS_KEY=YOUR_AWS_SECRET
+export KUBECONFIG=~/path/to/kubeconfig.yaml
 ```
 
-### 2. Update Your Shell Configuration
+##### **Loading a Profile**
 
-Add the following lines to your `~/.bashrc` or `~/.zshrc` file:
+Once a profile is configured, you can load it:
+```sh
+p projectA
+```
+This will apply the settings from the profile to your current terminal session.
 
-```bash
-# If set, forces the user to select a profile from the list.
-#export PROFILE_FORCE=1
+##### **Listing Available Profiles**
 
-# If set, loads the default profile when no profile is specified.
-#export PROFILE_DEFAULT=proj1
-
-
-# Source the profile script
-source ~/.profile.sh
-
-# Alias for the profile function
-alias p='profile'
-
-
+To see all profiles you've created, use:
+```sh
+p l
 ```
 
-### 3. Reload Your Shell Configuration:
+#### 3. **Advanced Usage**
 
-```bash
-source ~/.zshrc  # For Zsh users
-# or
-source ~/.bashrc  # For Bash users
+##### **Pre-Load and Post-Load Scripts**
+
+If you need to clean up old environment variables before loading a new profile or run setup tasks after loading one, you can use the `pre_load.sh` and `post_load.sh` scripts. For example:
+
+- **`pre_load.sh`** (clears old variables):
+  ```sh
+  unset AWS_ACCESS_KEY_ID
+  unset AWS_SECRET_ACCESS_KEY
+  unset KUBECONFIG
+  ```
+
+- **`post_load.sh`** (sets up configuration files):
+  ```sh
+  mkdir -p ~/.kube
+  cp "$KUBECONFIG" ~/.kube/config
+  kubectl config use-context default
+  ```
+
+These scripts will run automatically when switching profiles, ensuring a clean and ready-to-go environment each time.
+
+##### **Syncing Profiles with Git**
+
+If you work across multiple machines or with other people, you can sync your profiles using Git. Initialize a Git repository in the `~/.profiles` directory:
+```sh
+cd ~/.profiles
+git init
+git remote add origin <your-repo-url>
 ```
 
-## Usage
+To sync profiles:
+```sh
+p s
+```
+This will fetch updates from the repository, commit any local changes, and push the latest version to the remote repository.
 
-The `profile` function allows you to manage profiles using the following commands:
+#### 4. **Real-World Example**
 
-### Commands
+Let’s say you have two profiles, one for development (`dev`) and another for production (`prod`), each requiring different AWS and Kubernetes configurations:
 
-- **Help**: Display help message.
-    ```bash
-    p h
-    # or
-    p help
-    ```
+1. **Development Profile (`dev`)**:
+   ```sh
+   export AWS_ACCESS_KEY_ID=DEV_AWS_KEY
+   export AWS_SECRET_ACCESS_KEY=DEV_AWS_SECRET
+   export KUBECONFIG=~/dev-kubeconfig.yaml
+   ```
 
-- **List**: List all available profiles.
-    ```bash
-    p l
-    # or
-    p list
-    ```
+2. **Production Profile (`prod`)**:
+   ```sh
+   export AWS_ACCESS_KEY_ID=PROD_AWS_KEY
+   export AWS_SECRET_ACCESS_KEY=PROD_AWS_SECRET
+   export KUBECONFIG=~/prod-kubeconfig.yaml
+   ```
 
-- **Create New Profile**: Create a new profile with the given name.
-    ```bash
-    p i myprofile
-    # or
-    p init myprofile
-    ```
+You can easily switch between them:
+```sh
+p dev  # Switch to development environment
+p prod # Switch to production environment
+```
 
-- **Edit Profile**: Edit the specified profile using the default editor.
-    ```bash
-    p e myprofile
-    # or
-    p edit myprofile
-    ```
+In this case, `pre_load.sh` might clean up old AWS and Kubernetes settings, and `post_load.sh` might configure your AWS and Kubernetes CLI tools based on the newly loaded profile.
 
-- **Load Profile**: Load the specified profile.
-    ```bash
-    p myprofile
-    ```
+### Conclusion
 
-- **Default Profile**: Load the default profile if no profile is specified and `PROFILE_DEFAULT` is set.
-    ```bash
-    p
-    ```
-
-- **Force Profile Selection**: Forces the user to select a profile from the list if `PROFILE_FORCE` is set.
-    ```bash
-    PROFILE_FORCE=1 p
-    ```
-
-### Environment Variables
-
-- **`PROFILE_FORCE`**: If set, forces the user to select a profile from the list.
-- **`PROFILE_DEFAULT`**: If set, loads the default profile when no profile is specified.
-- **`PROFILE_PATH`**: Specifies the path to store and load profiles (default: `~/.profiles`).
-
-## Example Usage
-
-Suppose you have two profiles: one for university and another for the office. Each profile uses different environment variables:
-
-1. **Create Profiles**:
-    ```bash
-    p i university
-    p i office
-    ```
-
-2. **Set Up Profiles**:
-
-    - **University Profile (`university`)**:
-      ```bash
-      echo 'export OPENAI_API_KEY="your_university_key"' > ~/.profiles/university
-      echo 'export AWS_PROFILE="university_profile"' >> ~/.profiles/university
-      ```
-
-    - **Office Profile (`office`)**:
-      ```bash
-      echo 'export OPENAI_API_KEY="your_office_key"' > ~/.profiles/office
-      echo 'export AWS_PROFILE="office_profile"' >> ~/.profiles/office
-      ```
-
-3. **Switch Profiles**:
-
-    - To switch to the university profile:
-      ```bash
-      p university
-      ```
-
-    - To switch to the office profile:
-      ```bash
-      p office
-      ```
-
-4. **Force Profile Selection**:
-
-    - To force profile selection:
-      ```bash
-      PROFILE_FORCE=1 p
-      ```
-
-5. **Edit Profiles**:
-
-    - To edit the university profile:
-      ```bash
-      p e university
-      ```
-
-    - To edit the office profile:
-      ```bash
-      p e office
-      ```
-
-## Contributing
-
-Feel free to open issues or submit pull requests to improve the tool.
+This profile management script is an invaluable tool for anyone juggling multiple environments, such as developers, sysadmins, or cloud engineers. It automates the tedious task of setting environment variables and configurations for various projects, ensuring you always have the right setup with minimal effort. Additionally, integrating with Git allows for easy profile sharing and synchronization across multiple machines.
