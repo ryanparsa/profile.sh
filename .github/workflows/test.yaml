@@ -1,0 +1,45 @@
+name: Test Profile Script
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up shell
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bash zsh
+
+      - name: Make script executable
+        run: chmod +x ~/.profile.sh
+
+      - name: Test profile script in bash
+        shell: bash
+        run: |
+          ~/.profile.sh update
+          ~/.profile.sh i test_profile
+          ~/.profile.sh l
+          ~/.profile.sh e test_profile
+          ~/.profile.sh s
+          ~/.profile.sh pre
+          ~/.profile.sh post
+          ~/.profile.sh test_profile
+          ~/.profile.sh h
+
+      - name: Test profile script in zsh
+        shell: zsh
+        run: |
+          ~/.profile.sh update
+          ~/.profile.sh i test_profile
+          ~/.profile.sh l
+          ~/.profile.sh e test_profile
+          ~/.profile.sh s
+          ~/.profile.sh pre
+          ~/.profile.sh post
+          ~/.profile.sh test_profile
+          ~/.profile.sh h
