@@ -67,17 +67,18 @@ Alternatively, you can open the profiles directory in your favorite editor:
 code ~/.profiles  # or any other editor you prefer
 ```
 
-You can add project-specific environment variables, such as AWS credentials or Kubernetes configurations:
+You can add project-specific environment variables, such as AWS credentials or Kubernetes configurations, Alias, commands, ...:
 ```sh
+
 export AWS_ACCESS_KEY_ID=YOUR_AWS_KEY
 export AWS_SECRET_ACCESS_KEY=YOUR_AWS_SECRET
 export KUBECONFIG=~/path/to/kubeconfig.yaml
-```
 
-Or, you can create aliases or execute commands:
-```sh
 alias ng="ngrok http --domain=myapp.ngrok-free.app 8000"
+
 kubectl config set-context --current --namespace=prod
+
+git config --global user.email "your.email@example.com"
 ```
 
 ##### **Loading a Profile**
