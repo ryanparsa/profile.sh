@@ -1,12 +1,10 @@
+# cat ~/.profiles/projA
+
+# ENV
 export AWS_ACCESS_KEY_ID=YOUR_AWS_KEY
 export AWS_SECRET_ACCESS_KEY=YOUR_AWS_SECRET
 export KUBECONFIG=~/path/to/kubeconfig.yaml
 
-alias ng="ngrok http --domain=myapp.ngrok-free.app 8000"
-
-kubectl config set-context --current --namespace=prod
-
-git config --global user.email "your.email@example.com"
 
 #OpenAI
 export OPENAI_API_KEY='sk-proj--dmsa...'
@@ -18,3 +16,13 @@ export SSH_ID_ED25519_CONTENT="-----BEGIN OPENSSH PRIVATE KEY-----
 -----END OPENSSH PRIVATE KEY-----"
 
 export SSH_ID_ED25519_PUB_CONTENT="ssh-ed25519 ..."
+
+
+
+# Alias
+alias ng="ngrok http --domain=myapp.ngrok-free.app 8000"
+
+# Commands
+kubectl config set-context --current --namespace=prod
+
+git config --global user.email "your.email@example.com"
