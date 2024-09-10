@@ -2,6 +2,8 @@ name: Test Profile Script
 
 on: [push, pull_request]
 
+# TODO: we have a bug on setting shell name in jobs https://github.com/actions/runner/issues/444
+
 jobs:
   test_profile_script:
     strategy:
@@ -33,8 +35,7 @@ jobs:
 
       - name: Set up shell
         if: matrix.os == 'macos-latest'
-        run: |
-          brew install bash zsh make
+        run: brew install bash zsh make
 
       - name: Make script executable
         run: make install
@@ -45,55 +46,46 @@ jobs:
           source ~/.${{ matrix.shell }}rc
 
       - name: Test profile update
-        shell: ${{ matrix.shell }}
+        shell: bash
         run: |
-          echo "Running profile update"
           profile update 
 
       - name: Test profile init
-        shell: ${{ matrix.shell }}
+        shell: bash
         run: |
-          echo "Running profile init"
           profile i test_profile 
 
       - name: Test profile list
-        shell: ${{ matrix.shell }}
+        shell: bash
         run: |
-          echo "Running profile list"
           profile l 
 
       - name: Test profile edit
-        shell: ${{ matrix.shell }}
+        shell: bash
         run: |
-          echo "Running profile edit"
           profile e test_profile 
 
       - name: Test profile sync
-        shell: ${{ matrix.shell }}
+        shell: bash
         run: |
-          echo "Running profile sync"
           profile s 
 
       - name: Test profile pre
-        shell: ${{ matrix.shell }}
+        shell: bash
         run: |
-          echo "Running profile pre"
           profile pre 
 
       - name: Test profile post
-        shell: ${{ matrix.shell }}
+        shell: bash
         run: |
-          echo "Running profile post"
           profile post 
 
       - name: Test profile load
-        shell: ${{ matrix.shell }}
+        shell: bash
         run: |
-          echo "Running profile load"
           profile test_profile 
 
       - name: Test profile help
-        shell: ${{ matrix.shell }}
+        shell: bash
         run: |
-          echo "Running profile help"
           profile h 
