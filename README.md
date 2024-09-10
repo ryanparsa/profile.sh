@@ -1,7 +1,3 @@
-Here’s the updated documentation, including explanations for the specific environment variables you mentioned (`PROFILE_PATH`, `PRE_LOAD_SCRIPT`, `POST_LOAD_SCRIPT`, `PROFILE_FORCE`, and `PROFILE_DEFAULT`):
-
----
-
 ### Overview
 
 In modern development environments, managing different configurations for various projects or services (like AWS, Kubernetes, and SSH) can be challenging. Each project may require different credentials, environment variables, or services, and manually switching between them can be error-prone and time-consuming.
