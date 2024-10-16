@@ -2,8 +2,9 @@
 
 # Set default profile path if PROFILE_PATH is not set
 PROFILE_PATH="${PROFILE_PATH:-$HOME/.profiles}"
-PROFILE_PRE_LOAD_SCRIPT="${PROFILE_PRE_LOAD_SCRIPT:-$PROFILE_PATH/pre_load.sh}"
-PROFILE_POST_LOAD_SCRIPT="${PROFILE_POST_LOAD_SCRIPT:-$PROFILE_PATH/post_load.sh}"
+PROFILE_PRE_LOAD_SCRIPT="${PROFILE_PRE_LOAD_SCRIPT:-$PROFILE_PATH/.pre.sh}"
+PROFILE_POST_LOAD_SCRIPT="${PROFILE_POST_LOAD_SCRIPT:-$PROFILE_PATH/.post.sh}"
+PROFILE_CLEAN_SCRIPT="${PROFILE_CLEAN_SCRIPT:-$PROFILE_PATH/.clean.sh}"
 
 # Create profile directory if it doesn't exist
 if [ ! -d "$PROFILE_PATH" ]; then
@@ -23,25 +24,21 @@ if [ ! -f "$PROFILE_POST_LOAD_SCRIPT" ]; then
   touch "$PROFILE_POST_LOAD_SCRIPT"
 fi
 
-# Function to display help
-profile_help() {
-  echo "Usage: profile [COMMAND] [ARGS]"
-  echo ""
-  echo "Commands:"
-  echo "  h, help           - Display this help message"
-  echo "  l, list           - List available profiles"
-  echo "  i, init <name>    - Create a new profile with the given name"
-  echo "  e, edit <name>    - Edit the specified profile using the default editor"
-  echo "  s, sync           - Pull and push changes to remote git repo"
-  echo "  pre               - Run the pre-load script directly"
-  echo "  post              - Run the post-load script directly"
-  echo "  update            - Update this script to the latest version"
-  echo "  <name>            - Load the specified profile"
-  echo ""
-  echo "Notes:"
-  echo "  If PROFILE_FORCE is set, the script will prompt the user to select a profile from the list."
-  echo "  If PROFILE_DEFAULT is set and PROFILE_FORCE is not, the default profile will be loaded."
-  echo "  If neither is set, no profile will be loaded by default."
+# Create clean script if it doesn't exist
+if [ ! -f "$PROFILE_CLEAN_SCRIPT" ]; then
+  echo "Clean script not found. Creating: $PROFILE_CLEAN_SCRIPT"
+  touch "$PROFILE_CLEAN_SCRIPT"
+fi
+
+
+# Function to run the clean script
+profile_clean() {
+  if [ -f "$PROFILE_CLEAN_SCRIPT" ]; then
+    . "$PROFILE_CLEAN_SCRIPT"
+    echo "Clean script executed."
+  else
+    echo "Clean script not found."
+  fi
 }
 
 # Sync with git
@@ -115,7 +112,7 @@ profile_list() {
 }
 
 # Function to create a new profile
-profile_init() {
+profile_new() {
   profile_name="$1"
 
   if [ -z "$profile_name" ]; then
@@ -219,6 +216,29 @@ profile_default() {
   fi
 }
 
+# Function to display help
+profile_help() {
+  echo "Usage: profile [COMMAND] [ARGS]"
+  echo ""
+  echo "Commands:"
+  echo "  h, help           - Display this help message"
+  echo "  l, list           - List available profiles"
+  echo "  n, new <name>    - Create a new profile with the given name"
+  echo "  e, edit <name>    - Edit the specified profile using the default editor"
+  echo "  s, sync           - Pull and push changes to remote git repo"
+  echo "  pre               - Run the pre-load script directly"
+  echo "  post              - Run the post-load script directly"
+  echo "  p, clean          - Run the clean script"
+  echo "  update            - Update this script to the latest version"
+  echo "  <name>            - Load the specified profile"
+  echo ""
+  echo "Notes:"
+  echo "  If PROFILE_FORCE is set, the script will prompt the user to select a profile from the list."
+  echo "  If PROFILE_DEFAULT is set and PROFILE_FORCE is not, the default profile will be loaded."
+  echo "  If neither is set, no profile will be loaded by default."
+}
+
+
 # Main profile function to delegate to sub-functions
 profile() {
   command="$1"
@@ -234,8 +254,8 @@ profile() {
     "l" | "list")
       profile_list
       ;;
-    "i" | "init")
-      profile_init "$arg"
+    "n" | "new")
+      profile_new "$arg"
       ;;
     "e" | "edit")
       profile_edit "$arg"
@@ -248,6 +268,9 @@ profile() {
       ;;
     "post")
       profile_post
+      ;;
+    "p" | "clean")
+      profile_clean
       ;;
     "update")
       profile_update
