@@ -107,7 +107,7 @@ profile_sync() {
     fi
   else
     echo "No local changes to commit."
-  end
+  fi
 
   # Pull and rebase onto the updated remote branch
   echo "Pulling and rebasing onto remote $GIT_BRANCH..."
